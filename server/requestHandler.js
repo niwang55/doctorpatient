@@ -16,7 +16,7 @@ exports.loginHandler = (req, res) => {
     if (password === targetUser.password) {
       req.session.user = username;
       req.session.isDoctor = targetUser.isDoctor;
-      console.log(req.session);
+      
       res.send({
         authenticated: true
       });

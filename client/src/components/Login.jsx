@@ -8,7 +8,8 @@ export default class Login extends React.Component {
 
     this.state = {
       username: '',
-      password: ''
+      password: '',
+      message: null
     };
   }
 
@@ -36,7 +37,9 @@ export default class Login extends React.Component {
       if (response.data.authenticated) {
         browserHistory.push('/patients');
       } else {
-        console.log(response.data.message);
+        this.setState({
+          message: response.data.message
+        });
       }
     })
     .catch(error => {
@@ -56,6 +59,10 @@ export default class Login extends React.Component {
           <input type='password' value={this.state.password} onChange={this.handlePasswordChange.bind(this)} placeholder='Password' />
           <button onClick={this.handleLogin.bind(this)}>LOGIN</button>
         </form>
+
+        { this.state.message &&
+          this.state.message
+        }
       
       </div>
     );
