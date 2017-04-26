@@ -24,17 +24,13 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, '../client')));
 
-var checkUser = function(req, res, next) {
-  if (req.session.user) {
-    return next();
-  } else {
-    res.redirect('/login');
-  }
-};
-
+// Authentication routes
 app.post('/api/login', handler.loginHandler);
 app.get('/api/logout', handler.logoutHandler);
 app.get('/api/authenticate', handler.authenticateHandler);
+
+// Doctor routes
+app.get('/api/patients', handler.getPatientsHandler);
 
 app.get('*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client', 'index.html'));

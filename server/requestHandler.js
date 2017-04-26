@@ -59,3 +59,20 @@ exports.authenticateHandler = (req, res) => {
     });
   }
 };
+
+exports.getPatientsHandler = (req, res) => {
+  let patientsArray = [];
+
+  users.forEach(user => {
+    if (!user.isDoctor) {
+      let patientObject = {
+        'username': user.username,
+        'name': user.name,
+      };
+
+      patientsArray.push(patientObject);
+    }
+  });
+
+  res.send(patientsArray);
+};
