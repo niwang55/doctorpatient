@@ -18,7 +18,8 @@ exports.loginHandler = (req, res) => {
       req.session.isDoctor = targetUser.isDoctor;
       
       res.send({
-        authenticated: true
+        authenticated: true,
+        isDoctor: req.session.isDoctor
       });
     } else {
       res.send({
@@ -41,5 +42,20 @@ exports.logoutHandler = (req, res) => {
 
 // For react router to protect routes
 exports.authenticateHandler = (req, res) => {
-  req.session.user ? res.send({authenticated: true}) : res.send({authenticated: false});
+  if (req.session.user && req.session.isDoctor) {
+    res.send({
+      authenticated: true,
+      isDoctor: true
+    });
+  } else if (req.session.user && !req.session.isDoctor) {
+    res.send({
+      authenticated: true,
+      isDoctor: false
+    });
+  } else {
+    res.send({
+      authenticated: false,
+      isDoctor: false
+    });
+  }
 };

@@ -7,6 +7,7 @@ import axios from 'axios';
 import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Patients from './components/Patients.jsx';
+import Overview from './components/Overview.jsx';
 
 function requireAuth(nextState, replace, callback) {
   axios.get('/api/authenticate')
@@ -21,11 +22,25 @@ function requireAuth(nextState, replace, callback) {
     });
 }
 
+function requireDoctorAuth(nextState, replace, callback) {
+  axios.get('/api/authenticate')
+    .then(response => {
+      if (!response.data.authenticated || !response.data.isDoctor) {
+        replace('/login');
+      }
+      callback();
+    })
+    .catch(error => {
+      callback();
+    });
+}
+
 ReactDOM.render((
   <Router history={ browserHistory }>
     <Route path="/" component={ Home }>
       <Route path="/login" component={ Login } />
-      <Route path="/patients" component={ Patients } onEnter={ requireAuth } />
+      <Route path="/patients" component={ Patients } onEnter={ requireDoctorAuth } />
+      <Route path="/overview" component={ Overview } onEnter={ requireAuth } />
     </Route>
   </Router>
 ), document.getElementById('app'));

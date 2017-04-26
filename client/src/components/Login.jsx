@@ -33,9 +33,12 @@ export default class Login extends React.Component {
       password: this.state.password
     })
     .then(response => {
-      const location = this.props.location;
       if (response.data.authenticated) {
-        browserHistory.push('/patients');
+        if (response.data.isDoctor) {
+          browserHistory.push('/patients');
+        } else {
+          browserHistory.push('/overview');
+        }
       } else {
         this.setState({
           message: response.data.message
