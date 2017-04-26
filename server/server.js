@@ -32,8 +32,9 @@ var checkUser = function(req, res, next) {
   }
 };
 
-app.get('/api/login', handler.loginHandler);
+app.post('/api/login', handler.loginHandler);
 app.get('/api/logout', handler.logoutHandler);
+app.get('/api/authenticate', handler.authenticateHandler);
 
 app.get('*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client', 'index.html'));

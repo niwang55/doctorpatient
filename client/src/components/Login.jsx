@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import { browserHistory } from 'react-router';
 
 export default class Login extends React.Component {
   constructor(props) {
@@ -31,12 +32,18 @@ export default class Login extends React.Component {
       password: this.state.password
     })
     .then(response => {
-      console.log(response);
+      const location = this.props.location;
+      if (response.data.authenticated) {
+        browserHistory.push('/patients');
+      } else {
+        console.log(response.data.message);
+      }
     })
     .catch(error => {
-      console.log(error);
+      console.log('Error in login: ', error);
+      browserHistory.push('/login');
     });
-    
+
   }
 
   render() {
