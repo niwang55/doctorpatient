@@ -18,8 +18,10 @@
   },
   "homepage": "https://github.com/niwang55/doctorpatient#readme",
   "dependencies": {
+    "axios": "^0.16.1",
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
+    "express-session": "^1.15.2",
     "morgan": "^1.8.1",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",

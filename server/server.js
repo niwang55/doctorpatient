@@ -2,15 +2,38 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const session = require('express-session');
+
+const users = require('./people.json');
+const handler = require('./requestHandler.js');
 
 const app = express();
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.text({defaultCharset: 'utf-8'}));
 
+// sessions used for determining if user is logged in
+app.use(session({
+  secret: 'doctor patient',
+  resave: true,
+  rolling: true,
+  saveUninitialized: false
+}));
+
 app.use(express.static(path.join(__dirname, '../client')));
+
+var checkUser = function(req, res, next) {
+  if (req.session.user) {
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+};
+
+app.get('/api/login', handler.loginHandler);
+app.get('/api/logout', handler.logoutHandler);
 
 app.get('*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client', 'index.html'));
