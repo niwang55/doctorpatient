@@ -17,9 +17,8 @@ app.use(bodyParser.text({defaultCharset: 'utf-8'}));
 // sessions used for determining if user is logged in
 app.use(session({
   secret: 'doctor patient',
-  resave: true,
-  rolling: true,
-  saveUninitialized: false
+  resave: false,
+  saveUninitialized: true
 }));
 
 app.use(express.static(path.join(__dirname, '../client')));
@@ -38,7 +37,15 @@ app.get('/api/patientdetails', handler.getPatientDetails);
 app.get('/api/overview', handler.getDetails);
 app.get('/api/doctors', handler.getDoctors);
 
-// Route for patient retrieving/making appointments
+// Routes for doctor retrieving/making appointments
+app.get('/api/doctorappointment', handler.doctorGetAppointments);
+app.post('/api/doctorappointment', handler.doctorMakeAppointment);
+
+// Routes for doctor approving/rejecting appointments
+app.post('/api/approveappointment', handler.approveAppointment);
+app.post('/api/rejectappointment', handler.rejectAppointment);
+
+// Routes for patient retrieving/making appointments
 app.get('/api/patientappointment', handler.patientGetAppointments);
 app.post('/api/patientappointment', handler.patientMakeAppointment);
 

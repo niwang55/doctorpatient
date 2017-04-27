@@ -23,12 +23,10 @@ export default class Patients extends React.Component {
       });
   }
 
-  handleClick(index) {
-    const clickedPatient = this.state.patients[index];
-
+  handleClick(patient) {
     axios.post('/api/currentpatient', {
-      username: clickedPatient.username,
-      name: clickedPatient.name
+      username: patient.username,
+      name: patient.name
     })
     .catch(error => console.log(error));
 
@@ -52,7 +50,7 @@ export default class Patients extends React.Component {
 
         {
           this.state.filteredPatients.map((patient, index) => (
-            <div key={index} onClick={this.handleClick.bind(this, index)}>{patient.name}</div>
+            <div key={index} onClick={this.handleClick.bind(this, patient)}>{patient.name}</div>
           ))
         }
 

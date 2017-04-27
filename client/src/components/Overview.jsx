@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import Datetime from 'react-datetime';
+import moment from 'moment';
 
 export default class Overview extends React.Component {
   constructor(props) {
@@ -16,7 +17,6 @@ export default class Overview extends React.Component {
       appointments: null,
       appointmentDateTime: null,
       doctors: null,
-      selectedDoctor: null,
       selectedDoctorUser: null,
       test: null
     };
@@ -24,33 +24,32 @@ export default class Overview extends React.Component {
 
   componentWillMount() {
     axios.get('/api/overview')
-      .then(response => {
-        let patient = response.data;
-        this.setState({
-          username: patient.username,
-          name: patient.name,
-          age: patient.age,
-          email: patient.email,
-          address: patient.address,
-          phone: patient.phone,
-        });
+    .then(response => {
+      let patient = response.data;
+      this.setState({
+        username: patient.username,
+        name: patient.name,
+        age: patient.age,
+        email: patient.email,
+        address: patient.address,
+        phone: patient.phone,
       });
+    });
 
     axios.get('/api/doctors')
-      .then(response => {
-        this.setState({
-          doctors: [...response.data],
-          selectedDoctor: response.data[0].name,
-          selectedDoctorUser: response.data[0].username
-        });
+    .then(response => {
+      this.setState({
+        doctors: [...response.data],
+        selectedDoctorUser: response.data[0].username,
       });
+    });
 
     axios.get('/api/patientappointment')
-      .then(response => {
-        this.setState({
-          appointments: [...response.data]
-        });
+    .then(response => {
+      this.setState({
+        appointments: [...response.data]
       });
+    });
   }
 
   handleDatetimeChange(e) {
@@ -60,10 +59,8 @@ export default class Overview extends React.Component {
   }
 
   handleDoctorChange(e) {
-    let doctorObject = JSON.parse(e.target.value);
     this.setState({
-      selectedDoctor: doctorObject.name,
-      selectedDoctorUser: doctorObject.username
+      selectedDoctorUser: e.target.value,
     });
   }
 
@@ -75,8 +72,7 @@ export default class Overview extends React.Component {
       // Post to api with appointment time and selected doctor
       axios.post('/api/patientappointment', {
         time: this.state.appointmentDateTime,
-        doctor: this.state.selectedDoctor,
-        doctorUsername: this.state.selectedDoctorUser
+        doctorUser: this.state.selectedDoctorUser,
       })
       .then(response => {
         return axios.get('/api/patientappointment');
@@ -93,12 +89,64 @@ export default class Overview extends React.Component {
     }
   }
 
-  render() {
-    // Disable dates before today
+  // Disable dates before today
+  validDateTime(current) {
     const yesterday = Datetime.moment().subtract(1, 'day');
-    const valid = current => {
-      return current.isAfter(yesterday);
-    };
+    
+    return current.isAfter(yesterday);
+  }
+
+  findTimeDifference(time) {
+    const momentObject = moment(time, 'MM/DD/YYYY, hh:mm:ss A');
+    return moment().diff(momentObject, 'minutes');
+  }
+
+  // Map function for future appointments
+  currentAppointmentsMap(appointment, index) {
+    if (this.findTimeDifference(appointment.time) < 0 && appointment.approved) {
+      return (
+        <div key={index}>
+          <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+        </div>
+      );
+    }
+  }
+
+  // Map function for pending appointments
+  pendingAppointmentsMap(appointment, index) {
+    if (this.findTimeDifference(appointment.time) < 0 && !appointment.approved && !appointment.canceled) {
+      return (
+        <div key={index}>
+          <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+        </div>
+      );
+    }
+  }
+
+  // Map function for canceled appointments
+  canceledAppointmentsMap(appointment, index) {
+    if (appointment.canceled) {
+      return (
+        <div key={index}>
+          <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+          <div>Reason for canceling: {appointment.message}</div>
+        </div>
+      );
+    }
+  }
+
+  // Map function for past appointments
+  pastAppointmentsMap(appointment, index) {
+    if (this.findTimeDifference(appointment.time) > 0) {
+      return (
+        <div key={index}>
+          <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+        </div>
+      );
+    }
+  }
+
+  render() {
 
     return (
       <div>
@@ -115,24 +163,41 @@ export default class Overview extends React.Component {
           <h2>Appointments</h2>
 
           <div>
-            <Datetime isValidDate={valid} onChange={this.handleDatetimeChange.bind(this)} />
+            <h3>Make a new appointment</h3>
+            <Datetime isValidDate={this.validDateTime} onChange={this.handleDatetimeChange.bind(this)} />
             <select onChange={this.handleDoctorChange.bind(this)}>
               { this.state.doctors &&
                 this.state.doctors.map((doctor, index) => (
-                  <option key={index} value={JSON.stringify({name: doctor.name, username: doctor.username})}>{doctor.name}</option>
+                  <option key={index} value={doctor.username}>{doctor.name}</option>
                 ))
               }
             </select>
             <button onClick={this.handleMakeAppointment.bind(this)}>Make a new appointment</button>
           </div>
 
-          <div>
-            { this.state.appointments &&
-              this.state.appointments.map((appointment, index) => (
-                <div key={index}>{appointment.time}</div>
-              ))
-            }
-          </div>
+          { this.state.appointments &&
+            <div>
+              <div>
+                <h3>Upcoming Appointments</h3>
+                { this.state.appointments.map(this.currentAppointmentsMap.bind(this)) }
+              </div>
+
+              <div>
+                <h3>Pending Appointments</h3>
+                { this.state.appointments.map(this.pendingAppointmentsMap.bind(this)) }
+              </div>
+
+              <div>
+                <h3>Canceled Appointments</h3>
+                { this.state.appointments.map(this.canceledAppointmentsMap.bind(this)) }
+              </div>
+
+              <div>
+                <h3>Past Appointments</h3>
+                { this.state.appointments.map(this.pastAppointmentsMap.bind(this)) }
+              </div>
+            </div>
+          }
 
         </div>
 
