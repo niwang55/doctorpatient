@@ -16,7 +16,9 @@ export default class Overview extends React.Component {
       appointments: null,
       appointmentDateTime: null,
       doctors: null,
-      selectedDoctor: null
+      selectedDoctor: null,
+      selectedDoctorUser: null,
+      test: null
     };
   }
 
@@ -38,13 +40,16 @@ export default class Overview extends React.Component {
       .then(response => {
         this.setState({
           doctors: [...response.data],
-          selectedDoctor: response.data[0].username
+          selectedDoctor: response.data[0].name,
+          selectedDoctorUser: response.data[0].username
         });
       });
 
     axios.get('/api/patientappointment')
       .then(response => {
-        console.log(response);
+        this.setState({
+          appointments: [...response.data]
+        });
       });
   }
 
@@ -55,18 +60,31 @@ export default class Overview extends React.Component {
   }
 
   handleDoctorChange(e) {
+    let doctorObject = JSON.parse(e.target.value);
     this.setState({
-      selectedDoctor: e.target.value
+      selectedDoctor: doctorObject.name,
+      selectedDoctorUser: doctorObject.username
     });
   }
 
-  handleMakeAppointment() {
+  handleMakeAppointment(e) {
+    e.preventDefault();
+
     if (this.state.appointmentDateTime) {
 
       // Post to api with appointment time and selected doctor
       axios.post('/api/patientappointment', {
         time: this.state.appointmentDateTime,
-        doctor: this.state.selectedDoctor
+        doctor: this.state.selectedDoctor,
+        doctorUsername: this.state.selectedDoctorUser
+      })
+      .then(response => {
+        return axios.get('/api/patientappointment');
+      })
+      .then(response => {
+        this.setState({
+          appointments: [...response.data]
+        });
       })
       .catch(error => console.log(error));
 
@@ -95,15 +113,27 @@ export default class Overview extends React.Component {
 
         <div>
           <h2>Appointments</h2>
-          <Datetime isValidDate={valid} onChange={this.handleDatetimeChange.bind(this)} />
-          <select onChange={this.handleDoctorChange.bind(this)}>
-            { this.state.doctors &&
-              this.state.doctors.map((doctor, index) => (
-                <option key={index} value={doctor.username}>{doctor.name}</option>
+
+          <div>
+            <Datetime isValidDate={valid} onChange={this.handleDatetimeChange.bind(this)} />
+            <select onChange={this.handleDoctorChange.bind(this)}>
+              { this.state.doctors &&
+                this.state.doctors.map((doctor, index) => (
+                  <option key={index} value={JSON.stringify({name: doctor.name, username: doctor.username})}>{doctor.name}</option>
+                ))
+              }
+            </select>
+            <button onClick={this.handleMakeAppointment.bind(this)}>Make a new appointment</button>
+          </div>
+
+          <div>
+            { this.state.appointments &&
+              this.state.appointments.map((appointment, index) => (
+                <div key={index}>{appointment.time}</div>
               ))
             }
-          </select>
-          <button onClick={this.handleMakeAppointment.bind(this)}>Make a new appointment</button>
+          </div>
+
         </div>
 
       </div>

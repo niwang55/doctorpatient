@@ -155,7 +155,6 @@ exports.patientGetAppointments = (req, res) => {
 
   peopleJSON.forEach(person => {
     if (person.username === req.session.user) {
-      console.log(person.appointments);
       res.send(person.appointments);
     }
   });
@@ -168,6 +167,7 @@ exports.patientMakeAppointment = (req, res) => {
   const appointmentObject = {
     time: req.body.time,
     doctor: req.body.doctor,
+    doctorUsername: req.body.doctorUsername,
     approved: false,
     message: ''
   };
