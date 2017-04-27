@@ -30,7 +30,17 @@ app.get('/api/logout', handler.logoutHandler);
 app.get('/api/authenticate', handler.authenticateHandler);
 
 // Doctor routes
-app.get('/api/patients', handler.getPatientsHandler);
+app.get('/api/patients', handler.getPatients);
+app.post('/api/currentpatient', handler.updateCurrentPatient);
+app.get('/api/patientdetails', handler.getPatientDetails);
+
+// Patient routes
+app.get('/api/overview', handler.getDetails);
+app.get('/api/doctors', handler.getDoctors);
+
+// Route for patient retrieving/making appointments
+app.get('/api/patientappointment', handler.patientGetAppointments);
+app.post('/api/patientappointment', handler.patientMakeAppointment);
 
 app.get('*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client', 'index.html'));

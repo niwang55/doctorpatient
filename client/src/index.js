@@ -7,6 +7,7 @@ import axios from 'axios';
 import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Patients from './components/Patients.jsx';
+import PatientDetails from './components/PatientDetails.jsx';
 import Overview from './components/Overview.jsx';
 
 function requireAuth(nextState, replace, callback) {
@@ -40,6 +41,7 @@ ReactDOM.render((
     <Route path="/" component={ Home }>
       <Route path="/login" component={ Login } />
       <Route path="/patients" component={ Patients } onEnter={ requireDoctorAuth } />
+      <Route path="/patientdetails" component={ PatientDetails } onEnter={ requireDoctorAuth } />
       <Route path="/overview" component={ Overview } onEnter={ requireAuth } />
     </Route>
   </Router>
