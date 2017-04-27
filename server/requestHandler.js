@@ -306,11 +306,37 @@ exports.patientMakeAppointment = (req, res) => {
     patientUser: req.session.user,
     approved: false,
     canceled: false,
-    message: ''
+    message: 'Patient canceled'
   };
 
   peopleJSON[targetUserIndex].appointments.push(appointmentObject);
 
+  fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
+
+  res.end();
+};
+
+// for /api/cancelappointment
+exports.cancelAppointment = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+  
+  // find the target patient index
+  let targetPatientIndex = null;
+  peopleJSON.forEach( (person, index) => {
+    if (person.username === req.body.patientUser) {
+      targetPatientIndex = index;
+    }
+  });
+
+  // find the target appointment index
+  let targetAppointmentIndex = null;
+  peopleJSON[targetPatientIndex].appointments.forEach( (appointment, index) => {
+    if (appointment.appointmentId === req.body.appointmentId) {
+      targetAppointmentIndex = index;
+    }
+  });
+
+  peopleJSON[targetPatientIndex].appointments[targetAppointmentIndex].canceled = true;
   fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
 
   res.end();

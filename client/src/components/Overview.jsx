@@ -101,12 +101,31 @@ export default class Overview extends React.Component {
     return moment().diff(momentObject, 'minutes');
   }
 
+  handleCancelAppointment(appointment) {
+    axios.post('/api/cancelappointment', {
+      appointmentId: appointment.appointmentId,
+      patientUser: appointment.patientUser
+    })
+    .then(response => {
+      return axios.get('/api/patientappointment');
+    })
+    .then(response => {
+      this.setState({
+        appointments: [...response.data]
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
   // Map function for future appointments
   currentAppointmentsMap(appointment, index) {
-    if (this.findTimeDifference(appointment.time) < 0 && appointment.approved) {
+    if (this.findTimeDifference(appointment.time) < 0 && appointment.approved && !appointment.canceled) {
       return (
         <div key={index}>
           <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+          <button onClick={this.handleCancelAppointment.bind(this, appointment)}>Cancel</button>
         </div>
       );
     }

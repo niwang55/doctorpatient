@@ -49,6 +49,9 @@ app.post('/api/rejectappointment', handler.rejectAppointment);
 app.get('/api/patientappointment', handler.patientGetAppointments);
 app.post('/api/patientappointment', handler.patientMakeAppointment);
 
+// Route for patient to cancel future appointments
+app.post('/api/cancelappointment', handler.cancelAppointment);
+
 app.get('*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client', 'index.html'));
 });

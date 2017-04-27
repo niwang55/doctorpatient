@@ -127,7 +127,7 @@ export default class PatientDetails extends React.Component {
 
   // Map function for future appointments
   currentAppointmentsMap(appointment, index) {
-    if (this.findTimeDifference(appointment.time) < 0 && appointment.approved) {
+    if (this.findTimeDifference(appointment.time) < 0 && appointment.approved && !appointment.canceled) {
       return (
         <div key={index}>
           <div>Time: {appointment.time}</div>
