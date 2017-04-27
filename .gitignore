@@ -1,3 +1,6 @@
+# Webpack bundle
+client/compiled
+
 # Logs
 logs
 *.log
