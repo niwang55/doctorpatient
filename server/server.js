@@ -7,12 +7,17 @@ const session = require('express-session');
 const users = require('./people.json');
 const handler = require('./requestHandler.js');
 
+const busboy = require('connect-busboy');
+const fs = require('fs');
+
 const app = express();
 
+// Middleware
 app.use(morgan('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(bodyParser.text({defaultCharset: 'utf-8'}));
+app.use(busboy());
 
 // sessions used for determining if user is logged in
 app.use(session({
@@ -51,6 +56,15 @@ app.post('/api/patientappointment', handler.patientMakeAppointment);
 
 // Route for patient to cancel future appointments
 app.post('/api/cancelappointment', handler.cancelAppointment);
+
+// Routes for doctors to get, upload and delete attachments
+app.get('/api/doctorfiles', handler.doctorGetFiles);
+app.post('/api/doctorfiles', handler.doctorUploadFile);
+app.post('/api/doctordeletefile', handler.doctorDeleteFile);
+
+// Routes for patients to get and upload attachments
+app.get('/api/patientfiles', handler.patientGetFiles);
+app.post('/api/patientfiles', handler.patientUploadFile);
 
 app.get('*', function (req, res) {
   res.sendFile(path.resolve(__dirname, '../client', 'index.html'));

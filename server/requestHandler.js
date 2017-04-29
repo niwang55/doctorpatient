@@ -1,14 +1,15 @@
-const users = require('./people.json');
 const fs = require('fs');
 
 // for /api/login route
 exports.loginHandler = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+
   const username = req.body.username;
   const password = req.body.password;
 
   let targetUser = null;
 
-  users.forEach( user => {
+  peopleJSON.forEach( user => {
     if (user.username === username) {
       targetUser = user;
     }
@@ -66,9 +67,10 @@ exports.authenticateHandler = (req, res) => {
 
 // for /api/patients route
 exports.getPatients = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
   let patientsArray = [];
 
-  users.forEach(user => {
+  peopleJSON.forEach(user => {
     if (!user.isDoctor) {
       let patientObject = {
         'username': user.username,
@@ -91,9 +93,10 @@ exports.updateCurrentPatient = (req, res) => {
 
 // for /api/patientdetails route
 exports.getPatientDetails = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
   let patientObject;
 
-  users.forEach(user => {
+  peopleJSON.forEach(user => {
     if (req.session.currentPatient === user.username) {
       patientObject = {
         'username': user.username,
@@ -111,9 +114,10 @@ exports.getPatientDetails = (req, res) => {
 
 // for /api/overview route
 exports.getDetails = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
   let patientObject;
 
-  users.forEach(user => {
+  peopleJSON.forEach(user => {
     if (req.session.user === user.username) {
       patientObject = {
         'username': user.username,
@@ -132,9 +136,10 @@ exports.getDetails = (req, res) => {
 
 // for /api/doctors route
 exports.getDoctors = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
   let doctorsArray = [];
 
-  users.forEach(user => {
+  peopleJSON.forEach(user => {
     if (user.isDoctor) {
       let doctorObject = {
         'username': user.username,
@@ -181,7 +186,7 @@ exports.doctorMakeAppointment = (req, res) => {
   // Get the index of the target patient
   let targetUserIndex = null;
   peopleJSON.forEach( (person, index) => {
-    if (person.username === req.body.patientUser) {
+    if (person.username === req.session.currentPatient) {
       targetUserIndex = index;
     }
   });
@@ -195,7 +200,6 @@ exports.doctorMakeAppointment = (req, res) => {
     time: req.body.time,
     doctorUser: req.session.user,
     doctorName: doctorName,
-    patientUser: req.body.patientuser,
     approved: true,
     canceled: false,
     message: ''
@@ -215,7 +219,7 @@ exports.approveAppointment = (req, res) => {
   // find the target patient index
   let targetPatientIndex = null;
   peopleJSON.forEach( (person, index) => {
-    if (person.username === req.body.patientUser) {
+    if (person.username === req.session.currentPatient) {
       targetPatientIndex = index;
     }
   });
@@ -241,7 +245,7 @@ exports.rejectAppointment = (req, res) => {
   // find the target patient index
   let targetPatientIndex = null;
   peopleJSON.forEach( (person, index) => {
-    if (person.username === req.body.patientUser) {
+    if (person.username === req.session.currentPatient) {
       targetPatientIndex = index;
     }
   });
@@ -323,7 +327,7 @@ exports.cancelAppointment = (req, res) => {
   // find the target patient index
   let targetPatientIndex = null;
   peopleJSON.forEach( (person, index) => {
-    if (person.username === req.body.patientUser) {
+    if (person.username === req.session.user) {
       targetPatientIndex = index;
     }
   });
@@ -340,4 +344,151 @@ exports.cancelAppointment = (req, res) => {
   fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
 
   res.end();
+};
+
+// for GET /api/doctorfiles
+exports.doctorGetFiles = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+
+  peopleJSON.forEach( (person, index) => {
+    if (person.username === req.session.currentPatient) {
+      res.send(person.attachments);
+    }
+  });
+};
+
+// for POST /api/doctorfiles
+exports.doctorUploadFile = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+
+  // find the target patient index
+  let targetPatientIndex = null;
+  peopleJSON.forEach( (person, index) => {
+    if (person.username === req.session.currentPatient) {
+      targetPatientIndex = index;
+    }
+  });
+
+  let fstream;
+  let filePath;
+
+  req.pipe(req.busboy);
+  req.busboy.on('file', function (fieldname, file, filename) {
+    filePath = `${__dirname}/files/${filename}`;
+
+    let fileExists = false;
+    peopleJSON[targetPatientIndex].attachments.forEach(attachment => {
+      if (filename === attachment.filename) {
+        fileExists = true;
+      }
+    });
+
+    if (!fileExists) {
+      peopleJSON[targetPatientIndex].attachments.push({
+        filename: filename,
+        path: filePath
+      });
+      fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
+
+      fstream = fs.createWriteStream(filePath);
+      file.pipe(fstream);
+      fstream.on('close', function () {
+        res.send({
+          uploaded: true,
+          message: 'Uploaded'
+        });
+      });
+    } else {
+      res.send({
+        uploaded: false,
+        message: 'File with same name already exists, upload failed'
+      });
+    }
+  });
+};
+
+// for /api/doctordeletefile
+exports.doctorDeleteFile = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+
+    // find the target patient index
+  let targetPatientIndex = null;
+  peopleJSON.forEach( (person, index) => {
+    if (person.username === req.session.currentPatient) {
+      targetPatientIndex = index;
+    }
+  });
+
+  peopleJSON[targetPatientIndex].attachments.forEach( (attachment, index) => {
+    if (attachment.filename === req.body.filename) {
+      peopleJSON[targetPatientIndex].attachments.splice(index, 1);
+    }
+  });
+
+  fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
+
+  fs.unlink(req.body.path);
+
+  res.end();
+};
+
+// for GET /api/patientfiles
+exports.patientGetFiles = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+
+  peopleJSON.forEach( (person, index) => {
+    if (person.username === req.session.user) {
+      res.send(person.attachments);
+    }
+  });
+};
+
+// for POST /api/patientfiles
+exports.patientUploadFile = (req, res) => {
+  let peopleJSON = JSON.parse(fs.readFileSync(__dirname + '/people.json').toString());
+
+  // find the target patient index
+  let targetPatientIndex = null;
+  peopleJSON.forEach( (person, index) => {
+    if (person.username === req.session.user) {
+      targetPatientIndex = index;
+    }
+  });
+
+  let fstream;
+  let filePath;
+
+  req.pipe(req.busboy);
+  req.busboy.on('file', function (fieldname, file, filename) {
+    filePath = `${__dirname}/files/${filename}`;
+
+    let fileExists = false;
+    peopleJSON[targetPatientIndex].attachments.forEach(attachment => {
+      if (filename === attachment.filename) {
+        fileExists = true;
+      }
+    });
+
+    if (!fileExists) {
+      peopleJSON[targetPatientIndex].attachments.push({
+        filename: filename,
+        path: filePath
+      });
+      fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
+
+      fstream = fs.createWriteStream(filePath);
+      file.pipe(fstream);
+      fstream.on('close', function () {
+        res.send({
+          uploaded: true,
+          message: 'Uploaded'
+        });
+      });
+    } else {
+      res.send({
+        uploaded: false,
+        message: 'File with same name already exists, upload failed'
+      });
+    }
+  });
 };

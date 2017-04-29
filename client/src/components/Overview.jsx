@@ -2,6 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import Datetime from 'react-datetime';
 import moment from 'moment';
+import Dropzone from 'react-dropzone';
 
 export default class Overview extends React.Component {
   constructor(props) {
@@ -18,7 +19,7 @@ export default class Overview extends React.Component {
       appointmentDateTime: null,
       doctors: null,
       selectedDoctorUser: null,
-      test: null
+      files: null
     };
   }
 
@@ -48,6 +49,13 @@ export default class Overview extends React.Component {
     .then(response => {
       this.setState({
         appointments: [...response.data]
+      });
+    });
+
+    axios.get('/api/patientfiles')
+    .then(response => {
+      this.setState({
+        files: [...response.data]
       });
     });
   }
@@ -103,8 +111,7 @@ export default class Overview extends React.Component {
 
   handleCancelAppointment(appointment) {
     axios.post('/api/cancelappointment', {
-      appointmentId: appointment.appointmentId,
-      patientUser: appointment.patientUser
+      appointmentId: appointment.appointmentId
     })
     .then(response => {
       return axios.get('/api/patientappointment');
@@ -165,6 +172,37 @@ export default class Overview extends React.Component {
     }
   }
 
+  // Map function for attachments
+  filesMap(file, index) {
+    return (
+      <div key={index}>
+        Filename: {file.filename}
+        <a href={file.path} download>Download</a>
+      </div>
+    );
+  }
+
+  onDrop(files) {
+    const data = new FormData();
+
+    data.append('file', files[0], files[0].name);
+    axios.post('/api/patientfiles', data)
+    .then(response => {
+      if (!response.data.uploaded) {
+        alert(response.data.message);
+      }
+      return axios.get('/api/patientfiles');
+    })
+    .then(response => {
+      this.setState({
+        files: [...response.data]
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
   render() {
 
     return (
@@ -218,6 +256,18 @@ export default class Overview extends React.Component {
             </div>
           }
 
+        </div>
+
+        <div>
+          <h2>Attachments</h2>
+
+          { this.state.files && 
+            this.state.files.map(this.filesMap.bind(this))
+          }
+          <div>Upload new files: </div>
+          <Dropzone onDrop={this.onDrop.bind(this)}>
+            Drag a file here or click to upload
+          </Dropzone>
         </div>
 
       </div>

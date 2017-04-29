@@ -2,6 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import Datetime from 'react-datetime';
 import moment from 'moment';
+import Dropzone from 'react-dropzone';
 
 export default class PatientDetails extends React.Component {
   constructor(props) {
@@ -16,7 +17,8 @@ export default class PatientDetails extends React.Component {
       phone: null,
       appointments: null,
       appointmentDateTime: null,
-      reason: ''
+      reason: '',
+      files: null
     };
   }
 
@@ -40,6 +42,13 @@ export default class PatientDetails extends React.Component {
         appointments: [...response.data]
       });
     });
+
+    axios.get('/api/doctorfiles')
+    .then(response => {
+      this.setState({
+        files: [...response.data]
+      });
+    });
   }
 
   handleDatetimeChange(e) {
@@ -55,8 +64,7 @@ export default class PatientDetails extends React.Component {
 
       // Post to api with appointment time and selected doctor
       axios.post('/api/doctorappointment', {
-        time: this.state.appointmentDateTime,
-        patientUser: this.state.username
+        time: this.state.appointmentDateTime
       })
       .then(response => {
         return axios.get('/api/doctorappointment');
@@ -75,8 +83,7 @@ export default class PatientDetails extends React.Component {
 
   handleApproveClick(appointment) {
     axios.post('/api/approveappointment', {
-      appointmentId: appointment.appointmentId,
-      patientUser: appointment.patientUser
+      appointmentId: appointment.appointmentId
     })
     .then(response => {
       return axios.get('/api/doctorappointment');
@@ -95,7 +102,6 @@ export default class PatientDetails extends React.Component {
     if (this.state.reason !== '') {
       axios.post('/api/rejectappointment', {
         appointmentId: appointment.appointmentId,
-        patientUser: appointment.patientUser,
         message: this.state.reason
       })
       .then(response => {
@@ -118,6 +124,13 @@ export default class PatientDetails extends React.Component {
     this.setState({
       reason: e.target.value
     });
+  }
+
+  // Disable dates before today
+  validDateTime(current) {
+    const yesterday = Datetime.moment().subtract(1, 'day');
+    
+    return current.isAfter(yesterday);
   }
 
   findTimeDifference(time) {
@@ -173,6 +186,55 @@ export default class PatientDetails extends React.Component {
     }
   }
 
+  onDrop(files) {
+    const data = new FormData();
+
+    data.append('file', files[0], files[0].name);
+    axios.post('/api/doctorfiles', data)
+    .then(response => {
+      if (!response.data.uploaded) {
+        alert(response.data.message);
+      }
+      return axios.get('/api/doctorfiles');
+    })
+    .then(response => {
+      this.setState({
+        files: [...response.data]
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
+  handleRemoveAttachment(file) {
+    axios.post('/api/doctordeletefile', {
+      filename: file.filename,
+      path: file.path
+    })
+    .then(response => {
+      return axios.get('/api/doctorfiles');
+    })
+    .then(response => {
+      this.setState({
+        files: [...response.data]
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
+  filesMap(file, index) {
+    return (
+      <div key={index}>
+        Filename: {file.filename}
+        <a href={file.path} download>Download</a>
+        <button onClick={this.handleRemoveAttachment.bind(this, file)}>Remove</button>
+      </div>
+    );
+  }
+
   render() {
     return (
       <div>
@@ -218,6 +280,18 @@ export default class PatientDetails extends React.Component {
               </div>
             </div>
           }
+        </div>
+
+        <div>
+          <h2>Attachments</h2>
+
+          { this.state.files && 
+            this.state.files.map(this.filesMap.bind(this))
+          }
+          <div>Upload new files: </div>
+          <Dropzone onDrop={this.onDrop.bind(this)}>
+            Drag a file here or click to upload
+          </Dropzone>
         </div>
 
       </div>
