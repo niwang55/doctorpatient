@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 
-export default class Home extends React.Component {
+export default class Landing extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -9,9 +9,7 @@ export default class Home extends React.Component {
   render() {
     return (
       <div>
-        <h1>Doctor/Patient</h1>
-
-        <Link to="/">Home</Link>
+        <h1>Welcome</h1>
         <Link to="/login">Login</Link>
 
         { this.props.children }

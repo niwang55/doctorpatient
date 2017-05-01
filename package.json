@@ -4,6 +4,7 @@
   "description": "coding challenge",
   "main": "client/src/index.js",
   "scripts": {
+    "start": "node server/server.js",
     "test": "npm test",
     "dev": "nodemon server/server.js & webpack-dev-server --content-base client --open --inline --hot"
   },

@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, browserHistory, IndexRoute } from 'react-router';
+import { Router, Route, browserHistory } from 'react-router';
 
 import axios from 'axios';
 
-import Home from './components/Home.jsx';
+import Landing from './components/Landing.jsx';
 import Login from './components/Login.jsx';
+import Logout from './components/Logout.jsx';
 import Patients from './components/Patients.jsx';
 import PatientDetails from './components/PatientDetails.jsx';
 import Overview from './components/Overview.jsx';
@@ -38,8 +39,9 @@ function requireDoctorAuth(nextState, replace, callback) {
 
 ReactDOM.render((
   <Router history={ browserHistory }>
-    <Route path="/" component={ Home }>
-      <Route path="/login" component={ Login } />
+    <Route path="/" component={ Landing } />
+    <Route path="/login" component={ Login } />
+    <Route path="/logout" component={ Logout }>
       <Route path="/patients" component={ Patients } onEnter={ requireDoctorAuth } />
       <Route path="/patientdetails" component={ PatientDetails } onEnter={ requireDoctorAuth } />
       <Route path="/overview" component={ Overview } onEnter={ requireAuth } />
