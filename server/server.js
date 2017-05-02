@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const session = require('express-session');
 
-const users = require('./people.json');
 const handler = require('./requestHandler.js');
 
 const busboy = require('connect-busboy');
