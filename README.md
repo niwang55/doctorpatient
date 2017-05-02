@@ -49,6 +49,8 @@ Flexbox and SASS were used for styling, for ease of positioning and more intuiti
 2. Nodemon
 
 To run the app:
+  In the terminal:
   1. npm install
   2. webpack
   3. npm start
+  Then go to localhost:3000 in the browser
