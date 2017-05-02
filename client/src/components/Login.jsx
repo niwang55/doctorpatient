@@ -25,6 +25,8 @@ export default class Login extends React.Component {
     }); 
   }
 
+  // Sends a post request to the server with username and password,
+  // server checks to see if user is valid
   handleLogin(e) {
     e.preventDefault();
 
@@ -34,12 +36,15 @@ export default class Login extends React.Component {
     })
     .then(response => {
       if (response.data.authenticated) {
+        // if the user is a doctor, redirects to /patients,
+        // if user is patient, redirects to /overview
         if (response.data.isDoctor) {
           browserHistory.push('/patients');
         } else {
           browserHistory.push('/overview');
         }
       } else {
+        // Set a message for failed login
         this.setState({
           message: response.data.message
         });
