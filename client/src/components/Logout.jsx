@@ -7,6 +7,7 @@ export default class Logout extends React.Component {
     super(props);
   }
 
+  // Send a request to the server to logout, redirect back to the landing page
   handleLogout() {
     axios.get('/api/logout')
     .catch(error => {
