@@ -14,6 +14,7 @@ export default class Patients extends React.Component {
   }
 
   componentWillMount() {
+    // Get list of patients
     axios.get('/api/patients')
       .then(response => {
         this.setState({
@@ -23,6 +24,7 @@ export default class Patients extends React.Component {
       });
   }
 
+  // When doctor clicks on a patient, change currentPatient and redirect to that patient's detail page
   handleClick(patient) {
     axios.post('/api/currentpatient', {
       username: patient.username,
@@ -33,6 +35,7 @@ export default class Patients extends React.Component {
     browserHistory.push('/patientdetails');
   }
 
+  // When the search bar is updated, refilter the array to only include patients that are searched for
   handleSearchChange(e) {
     const filteredPatients = this.state.patients.filter(patient => patient.name.toLowerCase().includes(e.target.value));
     this.setState({

@@ -23,7 +23,9 @@ export default class PatientDetails extends React.Component {
     };
   }
 
+  // When component loads, get information about selected patient
   componentWillMount() {
+    // Basic info
     axios.get('/api/patientdetails')
     .then(response => {
       let patient = response.data;
@@ -37,6 +39,7 @@ export default class PatientDetails extends React.Component {
       });
     });
 
+    // Get list of appointments
     axios.get('/api/doctorappointment')
     .then(response => {
       this.setState({
@@ -44,6 +47,7 @@ export default class PatientDetails extends React.Component {
       });
     });
 
+    // Get list of files
     axios.get('/api/doctorfiles')
     .then(response => {
       this.setState({
@@ -68,8 +72,7 @@ export default class PatientDetails extends React.Component {
     e.preventDefault();
 
     if (this.state.appointmentDateTime && this.state.appointmentPurpose !== '') {
-
-      // Post to api with appointment time and selected doctor
+      // Post to api with appointment time, purpose, and selected doctor
       axios.post('/api/doctorappointment', {
         time: this.state.appointmentDateTime,
         purpose: this.state.appointmentPurpose
