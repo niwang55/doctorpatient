@@ -17,13 +17,16 @@ export default class Overview extends React.Component {
       phone: null,
       appointments: null,
       appointmentDateTime: null,
+      appointmentPurpose: '',
       doctors: null,
       selectedDoctorUser: null,
       files: null
     };
   }
 
+  // When component loads, get information about the patient and setState
   componentWillMount() {
+    // Basic information
     axios.get('/api/overview')
     .then(response => {
       let patient = response.data;
@@ -37,6 +40,7 @@ export default class Overview extends React.Component {
       });
     });
 
+    // Get the list of doctors
     axios.get('/api/doctors')
     .then(response => {
       this.setState({
@@ -45,6 +49,7 @@ export default class Overview extends React.Component {
       });
     });
 
+    // Get the list of appointments related to current patient
     axios.get('/api/patientappointment')
     .then(response => {
       this.setState({
@@ -52,6 +57,7 @@ export default class Overview extends React.Component {
       });
     });
 
+    // Get the list of files related to the current patient
     axios.get('/api/patientfiles')
     .then(response => {
       this.setState({
@@ -78,18 +84,19 @@ export default class Overview extends React.Component {
     });
   }
 
+  // When the user makes an appointment, send a post request to the server
   handleMakeAppointment(e) {
     e.preventDefault();
 
-    if (this.state.appointmentDateTime) {
-
-      // Post to api with appointment time and selected doctor
+    if (this.state.appointmentDateTime && this.state.appointmentPurpose !== '') {
+      // Post to api with appointment time, purpose, and selected doctor
       axios.post('/api/patientappointment', {
         time: this.state.appointmentDateTime,
         purpose: this.state.appointmentPurpose,
         doctorUser: this.state.selectedDoctorUser,
       })
       .then(response => {
+        // After posting a new apointment, get the list of appointments again to rerender
         return axios.get('/api/patientappointment');
       })
       .then(response => {
@@ -100,7 +107,8 @@ export default class Overview extends React.Component {
       .catch(error => console.log(error));
 
     } else {
-      alert('Please choose a time');
+      // If the user did not enter a date/purpose, alert them
+      alert('Please select a date and include the purpose of the appointment');
     }
   }
 
@@ -111,6 +119,7 @@ export default class Overview extends React.Component {
     return current.isAfter(yesterday);
   }
 
+  // Function to see if appointments are in the past
   findTimeDifference(time) {
     const momentObject = moment(time, 'MM/DD/YYYY, hh:mm:ss A');
     return moment().diff(momentObject, 'minutes');
@@ -194,6 +203,7 @@ export default class Overview extends React.Component {
     );
   }
 
+  // Function for when user uploads a file
   onDrop(files) {
     const data = new FormData();
 
