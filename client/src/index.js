@@ -11,6 +11,7 @@ import Patients from './components/Patients.jsx';
 import PatientDetails from './components/PatientDetails.jsx';
 import Overview from './components/Overview.jsx';
 
+// Function for onEnter hook for if a user is authenticated
 function requireAuth(nextState, replace, callback) {
   axios.get('/api/authenticate')
     .then(response => {
@@ -24,6 +25,7 @@ function requireAuth(nextState, replace, callback) {
     });
 }
 
+// Function for onEnter hook for if a user is authenticated and is a doctor
 function requireDoctorAuth(nextState, replace, callback) {
   axios.get('/api/authenticate')
     .then(response => {
