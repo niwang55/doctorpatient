@@ -54,18 +54,23 @@ export default class Login extends React.Component {
 
   render() {
     return (
-      <div>
-        <h1>LOGIN</h1>
+      <div className="login">
 
-        <form>
-          <input type='text' value={this.state.username} onChange={this.handleUsernameChange.bind(this)} placeholder='Username' />
-          <input type='password' value={this.state.password} onChange={this.handlePasswordChange.bind(this)} placeholder='Password' />
-          <button onClick={this.handleLogin.bind(this)}>LOGIN</button>
-        </form>
+        <div className="login-form">
 
-        { this.state.message &&
-          this.state.message
-        }
+          <form>
+            <input type='text' value={this.state.username} onChange={this.handleUsernameChange.bind(this)} placeholder='Username' />
+            <input type='password' value={this.state.password} onChange={this.handlePasswordChange.bind(this)} placeholder='Password' />
+            <button onClick={this.handleLogin.bind(this)}>LOGIN</button>
+          </form>
+
+          <div className="login-message">
+            { this.state.message &&
+              this.state.message
+            }
+          </div>
+
+        </div>
       
       </div>
     );

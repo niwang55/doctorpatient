@@ -42,15 +42,16 @@ export default class Patients extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="patients">
 
-        <h2>Patients</h2>
+        <h2><u>Patients</u></h2>
+        <p>Click on a patient to see details</p>
 
         <input type='text' placeholder='Search for a patient by name' onChange={this.handleSearchChange.bind(this)} />
 
         {
           this.state.filteredPatients.map((patient, index) => (
-            <div key={index} onClick={this.handleClick.bind(this, patient)}>{patient.name}</div>
+            <div className='patient-name' key={index} onClick={this.handleClick.bind(this, patient)}><i className="fa fa-address-card" aria-hidden="true"></i> {patient.name}</div>
           ))
         }
 

@@ -17,7 +17,8 @@ export default class PatientDetails extends React.Component {
       phone: null,
       appointments: null,
       appointmentDateTime: null,
-      reason: '',
+      appointmentPurpose: '',
+      cancelReason: '',
       files: null
     };
   }
@@ -57,14 +58,21 @@ export default class PatientDetails extends React.Component {
     });
   }
 
+  handlePurposeChange(e) {
+    this.setState({
+      appointmentPurpose: e.target.value
+    });
+  }
+
   handleMakeAppointment(e) {
     e.preventDefault();
 
-    if (this.state.appointmentDateTime) {
+    if (this.state.appointmentDateTime && this.state.appointmentPurpose !== '') {
 
       // Post to api with appointment time and selected doctor
       axios.post('/api/doctorappointment', {
-        time: this.state.appointmentDateTime
+        time: this.state.appointmentDateTime,
+        purpose: this.state.appointmentPurpose
       })
       .then(response => {
         return axios.get('/api/doctorappointment');
@@ -77,7 +85,7 @@ export default class PatientDetails extends React.Component {
       .catch(error => console.log(error));
 
     } else {
-      alert('Please choose a time');
+      alert('Please select a date and include the purpose of the appointment');
     }
   }
 
@@ -99,10 +107,10 @@ export default class PatientDetails extends React.Component {
   }
 
   handleRejectClick(appointment) {
-    if (this.state.reason !== '') {
+    if (this.state.cancelReason !== '') {
       axios.post('/api/rejectappointment', {
         appointmentId: appointment.appointmentId,
-        message: this.state.reason
+        cancelReason: this.state.cancelReason
       })
       .then(response => {
         return axios.get('/api/doctorappointment');
@@ -122,7 +130,7 @@ export default class PatientDetails extends React.Component {
 
   handleReasonChange(e) {
     this.setState({
-      reason: e.target.value
+      cancelReason: e.target.value
     });
   }
 
@@ -142,8 +150,9 @@ export default class PatientDetails extends React.Component {
   currentAppointmentsMap(appointment, index) {
     if (this.findTimeDifference(appointment.time) < 0 && appointment.approved && !appointment.canceled) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}</div>
+          <div>Purpose: {appointment.purpose}</div>
         </div>
       );
     }
@@ -153,8 +162,9 @@ export default class PatientDetails extends React.Component {
   pendingAppointmentsMap(appointment, index) {
     if (this.findTimeDifference(appointment.time) < 0 && !appointment.approved && !appointment.canceled) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}</div>
+          <div>Purpose: {appointment.purpose}</div>
           <button onClick={this.handleApproveClick.bind(this, appointment)}>Approve</button>
           <button onClick={this.handleRejectClick.bind(this, appointment)}>Reject</button>
           <input type='text' value={this.state.reason} onChange={this.handleReasonChange.bind(this)} placeholder='Reason for rejection' />
@@ -167,9 +177,10 @@ export default class PatientDetails extends React.Component {
   canceledAppointmentsMap(appointment, index) {
     if (appointment.canceled) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}</div>
-          <div>Reason for canceling: {appointment.message}</div>
+          <div>Purpose: {appointment.purpose}</div>
+          <div>Reason for canceling: {appointment.cancelReason}</div>
         </div>
       );
     }
@@ -179,8 +190,9 @@ export default class PatientDetails extends React.Component {
   pastAppointmentsMap(appointment, index) {
     if (this.findTimeDifference(appointment.time) > 0) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}</div>
+          <div>Purpose: {appointment.purpose}</div>
         </div>
       );
     }
@@ -227,20 +239,21 @@ export default class PatientDetails extends React.Component {
 
   filesMap(file, index) {
     return (
-      <div key={index}>
-        Filename: {file.filename}
-        <a href={file.path} download>Download</a>
-        <button onClick={this.handleRemoveAttachment.bind(this, file)}>Remove</button>
+      <div className="list-files" key={index}>
+        <div>Name: {file.filename}</div>
+        <div><a href={file.path} download>DL: <i className="fa fa-download" aria-hidden="true"></i>
+</a></div>
+        <div><button onClick={this.handleRemoveAttachment.bind(this, file)}>Remove</button></div>
       </div>
     );
   }
 
   render() {
     return (
-      <div>
+      <div className="patient-details">
 
-        <div>
-          <h2>Patient Details</h2>
+        <div className="patient-details-col patient-details-info">
+          <h2><u>Patient Information</u></h2>
           <div>Name: {this.state.name}</div>
           <div>Age: {this.state.age}</div>
           <div>Email: {this.state.email}</div>
@@ -248,50 +261,61 @@ export default class PatientDetails extends React.Component {
           <div>Phone: {this.state.phone}</div>
         </div>
 
-        <div>
-          <h2>Appointments</h2>
+        <div className="patient-details-col patient-details-appointments">
+          <h2><u>Appointments</u></h2>
 
-          <div>
-            <h3>Make a new appointment</h3>
-            <Datetime isValidDate={this.validDateTime} onChange={this.handleDatetimeChange.bind(this)} />
-            <button onClick={this.handleMakeAppointment.bind(this)}>Make a new appointment</button>
+          <div className="appointment-maker">
+            <h3>Make a new appointment <i className="fa fa-calendar" aria-hidden="true"></i></h3>
+            <div className="date-picker">
+              <Datetime inputProps={{placeholder: 'Click to pick a date', className: 'calendar'}} isValidDate={this.validDateTime} onChange={this.handleDatetimeChange.bind(this)} />
+              <button onClick={this.handleMakeAppointment.bind(this)}>Make a new appointment</button>
+            </div>
+            <textarea className="appointment-purpose" onChange={this.handlePurposeChange.bind(this)} placeholder="What is the purpose of this appointment?" />
           </div>
 
           { this.state.appointments &&
             <div>
-              <div>
-                <h3>Upcoming Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Upcoming Appointments</u></h3>
                 { this.state.appointments.map(this.currentAppointmentsMap.bind(this)) }
               </div>
 
-              <div>
-                <h3>Pending Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Pending Appointments</u></h3>
                 { this.state.appointments.map(this.pendingAppointmentsMap.bind(this)) }
               </div>
 
-              <div>
-                <h3>Canceled Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Canceled Appointments</u></h3>
                 { this.state.appointments.map(this.canceledAppointmentsMap.bind(this)) }
               </div>
 
-              <div>
-                <h3>Past Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Past Appointments</u></h3>
                 { this.state.appointments.map(this.pastAppointmentsMap.bind(this)) }
               </div>
             </div>
           }
         </div>
 
-        <div>
-          <h2>Attachments</h2>
+        <div className="patient-details-col patient-details-attachments">
+          <div>
+            <h2><u>Attachments</u></h2>
 
-          { this.state.files && 
-            this.state.files.map(this.filesMap.bind(this))
-          }
-          <div>Upload new files: </div>
-          <Dropzone onDrop={this.onDrop.bind(this)}>
-            Drag a file here or click to upload
-          </Dropzone>
+            <div><h3>Upload new files:</h3></div>
+            <Dropzone className="file-uploader" onDrop={this.onDrop.bind(this)}>
+              <div>Drag a file here or click to upload</div>
+              <i className="fa fa-upload fa-3x" aria-hidden="true"></i>
+            </Dropzone>
+          </div>
+
+          <div>
+            <h3>Files:</h3>
+            { this.state.files &&
+              this.state.files.map(this.filesMap.bind(this))
+            }
+          </div>
+
         </div>
 
       </div>

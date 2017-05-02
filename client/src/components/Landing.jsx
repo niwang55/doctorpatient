@@ -8,11 +8,11 @@ export default class Landing extends React.Component {
 
   render() {
     return (
-      <div>
-        <h1>Welcome</h1>
-        <Link to="/login">Login</Link>
-
-        { this.props.children }
+      <div className="landing-container">
+        <div className="landing-content">
+          <h1>Welcome</h1>
+          <Link className="login-button" to="/login">Login</Link>
+        </div>
       </div>
     );
   }

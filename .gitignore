@@ -1,6 +1,10 @@
 # Webpack bundle
 client/compiled
 
+# SASS
+client/assets/.sass-cache
+client/assets/styles.css.map
+
 # Logs
 logs
 *.log

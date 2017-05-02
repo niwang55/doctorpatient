@@ -68,7 +68,13 @@ export default class Overview extends React.Component {
 
   handleDoctorChange(e) {
     this.setState({
-      selectedDoctorUser: e.target.value,
+      selectedDoctorUser: e.target.value
+    });
+  }
+
+  handlePurposeChange(e) {
+    this.setState({
+      appointmentPurpose: e.target.value
     });
   }
 
@@ -80,6 +86,7 @@ export default class Overview extends React.Component {
       // Post to api with appointment time and selected doctor
       axios.post('/api/patientappointment', {
         time: this.state.appointmentDateTime,
+        purpose: this.state.appointmentPurpose,
         doctorUser: this.state.selectedDoctorUser,
       })
       .then(response => {
@@ -130,8 +137,9 @@ export default class Overview extends React.Component {
   currentAppointmentsMap(appointment, index) {
     if (this.findTimeDifference(appointment.time) < 0 && appointment.approved && !appointment.canceled) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+          <div>Purpose: {appointment.purpose}</div>
           <button onClick={this.handleCancelAppointment.bind(this, appointment)}>Cancel</button>
         </div>
       );
@@ -142,8 +150,9 @@ export default class Overview extends React.Component {
   pendingAppointmentsMap(appointment, index) {
     if (this.findTimeDifference(appointment.time) < 0 && !appointment.approved && !appointment.canceled) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+          <div>Purpose: {appointment.purpose}</div>
         </div>
       );
     }
@@ -153,9 +162,10 @@ export default class Overview extends React.Component {
   canceledAppointmentsMap(appointment, index) {
     if (appointment.canceled) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
-          <div>Reason for canceling: {appointment.message}</div>
+          <div>Purpose: {appointment.purpose}</div>
+          <div>Reason for canceling: {appointment.cancelReason}</div>
         </div>
       );
     }
@@ -165,8 +175,9 @@ export default class Overview extends React.Component {
   pastAppointmentsMap(appointment, index) {
     if (this.findTimeDifference(appointment.time) > 0) {
       return (
-        <div key={index}>
+        <div key={index} className="appointment">
           <div>Time: {appointment.time}, with Dr. {appointment.doctorName}</div>
+          <div>Purpose: {appointment.purpose}</div>
         </div>
       );
     }
@@ -175,9 +186,10 @@ export default class Overview extends React.Component {
   // Map function for attachments
   filesMap(file, index) {
     return (
-      <div key={index}>
-        Filename: {file.filename}
-        <a href={file.path} download>Download</a>
+      <div className="list-files" key={index}>
+        <div>Name: {file.filename}</div>
+        <div><a href={file.path} download>DL: <i className="fa fa-download" aria-hidden="true"></i>
+</a></div>
       </div>
     );
   }
@@ -206,9 +218,9 @@ export default class Overview extends React.Component {
   render() {
 
     return (
-      <div>
+      <div className="patient-details">
 
-        <div>
+        <div className="patient-details-col patient-details-info">
           <h2>{this.state.name}</h2>
           <div>Age: {this.state.age}</div>
           <div>Email: {this.state.email}</div>
@@ -216,41 +228,47 @@ export default class Overview extends React.Component {
           <div>Phone: {this.state.phone}</div>
         </div>
 
-        <div>
+        <div className="patient-details-col patient-details-appointments">
           <h2>Appointments</h2>
 
-          <div>
-            <h3>Make a new appointment</h3>
-            <Datetime isValidDate={this.validDateTime} onChange={this.handleDatetimeChange.bind(this)} />
-            <select onChange={this.handleDoctorChange.bind(this)}>
-              { this.state.doctors &&
-                this.state.doctors.map((doctor, index) => (
-                  <option key={index} value={doctor.username}>{doctor.name}</option>
-                ))
-              }
-            </select>
-            <button onClick={this.handleMakeAppointment.bind(this)}>Make a new appointment</button>
+          <div className="appointment-maker">
+            <h3>Request a new appointment <i className="fa fa-calendar" aria-hidden="true"></i></h3>
+            <div className="date-picker">
+              <Datetime inputProps={{placeholder: 'Click to pick a date', className: 'calendar'}} isValidDate={this.validDateTime} onChange={this.handleDatetimeChange.bind(this)} />
+              <button onClick={this.handleMakeAppointment.bind(this)}>Request</button>
+            </div>
+            <div className="purpose-doctor-picker">
+              <textarea className="appointment-purpose" onChange={this.handlePurposeChange.bind(this)} placeholder="What is the purpose of this appointment?" />
+              <span>Pick a doctor: </span>
+              <select onChange={this.handleDoctorChange.bind(this)}>
+                { this.state.doctors &&
+                  this.state.doctors.map((doctor, index) => (
+                    <option key={index} value={doctor.username}>{doctor.name}</option>
+                  ))
+                }
+              </select>
+            </div>
           </div>
 
           { this.state.appointments &&
             <div>
-              <div>
-                <h3>Upcoming Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Upcoming Appointments</u></h3>
                 { this.state.appointments.map(this.currentAppointmentsMap.bind(this)) }
               </div>
 
-              <div>
-                <h3>Pending Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Pending Appointments</u></h3>
                 { this.state.appointments.map(this.pendingAppointmentsMap.bind(this)) }
               </div>
 
-              <div>
-                <h3>Canceled Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Canceled Appointments</u></h3>
                 { this.state.appointments.map(this.canceledAppointmentsMap.bind(this)) }
               </div>
 
-              <div>
-                <h3>Past Appointments</h3>
+              <div className="appointment-container">
+                <h3><u>Past Appointments</u></h3>
                 { this.state.appointments.map(this.pastAppointmentsMap.bind(this)) }
               </div>
             </div>
@@ -258,16 +276,23 @@ export default class Overview extends React.Component {
 
         </div>
 
-        <div>
-          <h2>Attachments</h2>
+        <div className="patient-details-col patient-details-attachments">
+          <div>
+            <h2>Attachments</h2>
 
-          { this.state.files && 
-            this.state.files.map(this.filesMap.bind(this))
-          }
-          <div>Upload new files: </div>
-          <Dropzone onDrop={this.onDrop.bind(this)}>
-            Drag a file here or click to upload
-          </Dropzone>
+            <div>Upload new files: </div>
+            <Dropzone className="file-uploader" onDrop={this.onDrop.bind(this)}>
+              <div>Drag a file here or click to upload</div>
+              <i className="fa fa-upload fa-3x" aria-hidden="true"></i>
+            </Dropzone>
+          </div>
+
+          <div>
+            <h3>Files:</h3>
+            { this.state.files &&
+              this.state.files.map(this.filesMap.bind(this))
+            }
+          </div>
         </div>
 
       </div>

@@ -198,11 +198,12 @@ exports.doctorMakeAppointment = (req, res) => {
   const appointmentObject = {
     appointmentId: id,
     time: req.body.time,
+    purpose: req.body.purpose,
     doctorUser: req.session.user,
     doctorName: doctorName,
     approved: true,
     canceled: false,
-    message: ''
+    cancelReason: ''
   };
 
   peopleJSON[targetUserIndex].appointments.push(appointmentObject);
@@ -259,7 +260,7 @@ exports.rejectAppointment = (req, res) => {
   });
 
   peopleJSON[targetPatientIndex].appointments[targetAppointmentIndex].canceled = true;
-  peopleJSON[targetPatientIndex].appointments[targetAppointmentIndex].message = req.body.message;
+  peopleJSON[targetPatientIndex].appointments[targetAppointmentIndex].cancelReason = req.body.cancelReason;
 
   fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
 
@@ -305,12 +306,12 @@ exports.patientMakeAppointment = (req, res) => {
   const appointmentObject = {
     appointmentId: id,
     time: req.body.time,
+    purpose: req.body.purpose,
     doctorUser: req.body.doctorUser,
     doctorName: doctorName,
     patientUser: req.session.user,
     approved: false,
-    canceled: false,
-    message: 'Patient canceled'
+    canceled: false
   };
 
   peopleJSON[targetUserIndex].appointments.push(appointmentObject);
@@ -341,6 +342,7 @@ exports.cancelAppointment = (req, res) => {
   });
 
   peopleJSON[targetPatientIndex].appointments[targetAppointmentIndex].canceled = true;
+  peopleJSON[targetPatientIndex].appointments[targetAppointmentIndex].cancelReason = 'Patient canceled';
   fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
 
   res.end();
@@ -427,7 +429,22 @@ exports.doctorDeleteFile = (req, res) => {
 
   fs.writeFile(__dirname + '/people.json', JSON.stringify(peopleJSON));
 
-  fs.unlink(req.body.path);
+  let otherPatientHasFile = false;
+
+  peopleJSON.forEach( (person, index) => {
+    if (index !== targetPatientIndex && person.attachments) {
+      person.attachments.forEach(attachment => {
+        if (attachment.filename === req.body.filename) {
+          otherPatientHasFile = true;
+        }
+      });
+    }
+  });
+
+  if (!otherPatientHasFile) {
+    fs.unlink(req.body.path);
+  }
+
 
   res.end();
 };

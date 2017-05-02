@@ -41,7 +41,7 @@ ReactDOM.render((
   <Router history={ browserHistory }>
     <Route path="/" component={ Landing } />
     <Route path="/login" component={ Login } />
-    <Route path="/logout" component={ Logout }>
+    <Route component={ Logout }>
       <Route path="/patients" component={ Patients } onEnter={ requireDoctorAuth } />
       <Route path="/patientdetails" component={ PatientDetails } onEnter={ requireDoctorAuth } />
       <Route path="/overview" component={ Overview } onEnter={ requireAuth } />

@@ -18,11 +18,15 @@ export default class Logout extends React.Component {
 
   render() {
     return (
-      <div>
-        <Link onClick={this.handleLogout.bind(this)}>Logout</Link>
-        {
-          this.props.children
-        }
+      <div className="logout">
+        <div className="logout-button-col">
+          <Link className="logout-button" onClick={this.handleLogout.bind(this)}>Logout</Link>
+        </div>
+        <div className="main-content">
+          {
+            this.props.children
+          }
+        </div>
       </div>
     );
   }
